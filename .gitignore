@@ -43,6 +43,9 @@ db.sqlite3-journal
 # Environment
 .env
 .env.local
+secret.env
+*.secrets
+.secrets/
 
 # Logs
 logs/
@@ -64,4 +67,3 @@ celerybeat.pid
 # Migrations (optional - uncomment if needed)
 # */migrations/*.py
 # !*/migrations/__init__.py
-.env
