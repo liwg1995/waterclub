@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}师资力量 - 水立方舞蹈工作室{% endblock %}
+
+{% block content %}
+<div class="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h1 class="text-4xl md:text-5xl font-bold mb-4">师资力量</h1>
+        <p class="text-lg opacity-90">专业的教师团队，丰富的教学经验</p>
+    </div>
+</div>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {% for teacher in teachers %}
+        <div class="bg-white rounded-lg overflow-hidden shadow-lg hover-lift">
+            {% if teacher.photo %}
+            <img src="{{ teacher.photo.url }}" alt="{{ teacher.real_name }}" class="w-full h-80 object-cover">
+            {% else %}
+            <div class="w-full h-80 bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
+                <span class="text-6xl text-white">{{ teacher.real_name.0 }}</span>
+            </div>
+            {% endif %}
+            <div class="p-6">
+                <h3 class="text-2xl font-bold mb-2">{{ teacher.real_name }}</h3>
+                <p class="text-blue-600 font-semibold mb-3">{{ teacher.specialty }}</p>
+                <div class="text-sm text-gray-600 mb-4">
+                    <p>教龄：{{ teacher.experience_years }}年</p>
+                </div>
+                {% if teacher.introduction %}
+                <p class="text-gray-700 text-sm">{{ teacher.introduction|truncatewords:30 }}</p>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-3 text-center text-gray-500 py-12">暂无教师信息</div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

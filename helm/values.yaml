@@ -1,0 +1,144 @@
+# 水立方舞蹈工作室管理系统 Helm values
+
+namespace: water-cube
+
+# 镜像配置
+image:
+  web:
+    repository: your-registry/water-cube-web
+    tag: latest
+    pullPolicy: IfNotPresent
+
+# Web 应用配置
+web:
+  replicaCount: 3
+  
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  
+  # 自动扩缩容
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    cpuTarget: 70
+    memoryTarget: 80
+  
+  # 服务配置
+  service:
+    type: ClusterIP
+    port: 8000
+  
+  # Ingress 配置
+  ingress:
+    enabled: true
+    className: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+    hosts:
+      - host: water-cube.local
+        paths:
+          - path: /
+            pathType: Prefix
+      - host: api.water-cube.local
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: water-cube-tls
+        hosts:
+          - water-cube.local
+          - api.water-cube.local
+  
+  # 健康检查
+  livenessProbe:
+    enabled: true
+    httpGet:
+      path: /admin/
+      port: 8000
+    initialDelaySeconds: 60
+    periodSeconds: 10
+  
+  readinessProbe:
+    enabled: true
+    httpGet:
+      path: /admin/
+      port: 8000
+    initialDelaySeconds: 30
+    periodSeconds: 5
+
+# MySQL 配置
+mysql:
+  enabled: true
+  
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  
+  persistence:
+    enabled: true
+    storageClass: standard
+    size: 10Gi
+  
+  # MySQL 初始化
+  auth:
+    rootPassword: change-this-password
+    database: water_cube_db
+
+# Redis 配置
+redis:
+  enabled: true
+  
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+  
+  persistence:
+    enabled: true
+    storageClass: standard
+    size: 5Gi
+
+# 配置
+config:
+  DEBUG: "False"
+  LANGUAGE_CODE: "zh-hans"
+  TIME_ZONE: "Asia/Shanghai"
+  USE_REDIS: "True"
+  CACHE_TIMEOUT: 3600
+  LOG_LEVEL: "INFO"
+
+# 敏感信息
+secrets:
+  SECRET_KEY: "change-this-key"
+  DB_PASSWORD: "change-this-password"
+  REDIS_PASSWORD: ""
+  ALIPAY_APP_ID: ""
+  ALIPAY_PRIVATE_KEY: ""
+  WECHAT_APP_ID: ""
+  WECHAT_MCH_ID: ""
+  HUPIPAY_APP_ID: ""
+
+# RBAC
+rbac:
+  create: true
+  serviceAccountName: web
+
+# 监控
+monitoring:
+  enabled: true
+  prometheus:
+    enabled: true
+    interval: 30s

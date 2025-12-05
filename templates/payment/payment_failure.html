@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}支付失败 - 水立方舞蹈工作室{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
+        <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-6">
+            <svg class="h-8 w-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </div>
+        
+        <h1 class="text-3xl font-bold text-gray-900 mb-4">支付失败</h1>
+        
+        <p class="text-gray-600 mb-6">
+            {{ message|default:"很遗憾，您的支付未成功。" }}
+        </p>
+        
+        <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 text-left">
+            <h4 class="font-bold text-red-900 mb-2">⚠️ 可能的原因</h4>
+            <ul class="text-sm text-red-800 space-y-1">
+                <li>• 支付超时或被中断</li>
+                <li>• 账户余额不足</li>
+                <li>• 支付方式设置有问题</li>
+                <li>• 网络连接不稳定</li>
+            </ul>
+        </div>
+        
+        <div class="space-y-3">
+            <a href="javascript:history.back()" class="block w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-lg font-semibold hover:shadow-lg transition-all">
+                返回重试
+            </a>
+            <a href="{% url 'cms:home' %}" class="block w-full border-2 border-blue-500 text-blue-600 px-6 py-2 rounded-lg font-semibold hover:bg-blue-50 transition-colors">
+                返回首页
+            </a>
+            <a href="tel:400-123-4567" class="block w-full border-2 border-gray-300 text-gray-700 px-6 py-2 rounded-lg font-semibold hover:bg-gray-50 transition-colors">
+                📞 拨打客服：400-123-4567
+            </a>
+        </div>
+        
+        <p class="text-xs text-gray-500 mt-6">
+            如有任何问题，请联系我们的客服团队
+        </p>
+    </div>
+</div>
+{% endblock %}

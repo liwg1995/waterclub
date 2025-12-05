@@ -1,0 +1,69 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: water-cube
+
+bases:
+- ../../
+
+replicas:
+- name: web
+  count: 3
+- name: mysql
+  count: 1
+- name: redis
+  count: 1
+
+images:
+- name: water-cube-web
+  newName: your-registry/water-cube-web
+  newTag: latest
+
+patches:
+- target:
+    kind: Deployment
+    name: web
+  patch: |-
+    - op: replace
+      path: /spec/replicas
+      value: 3
+    - op: replace
+      path: /spec/template/spec/containers/0/imagePullPolicy
+      value: IfNotPresent
+
+- target:
+    kind: HorizontalPodAutoscaler
+    name: web-hpa
+  patch: |-
+    - op: replace
+      path: /spec/minReplicas
+      value: 3
+    - op: replace
+      path: /spec/maxReplicas
+      value: 20
+
+configMapGenerator:
+- name: water-cube-config
+  behavior: merge
+  literals:
+  - DEBUG=False
+  - ALLOWED_HOSTS=water-cube.com,api.water-cube.com,www.water-cube.com
+  - LOG_LEVEL=WARNING
+
+secretGenerator:
+- name: water-cube-secret
+  behavior: merge
+  files:
+  - secret.env
+
+commonLabels:
+  environment: prod
+  tier: production
+
+commonAnnotations:
+  description: "生产环境配置"
+  maintainer: "DevOps Team"
+
+# 资源限额
+resources:
+- quota.yaml

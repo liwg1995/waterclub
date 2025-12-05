@@ -1,0 +1,58 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: water-cube
+  namespace: water-cube
+
+# 基础资源
+resources:
+- namespace.yaml
+- configmap.yaml
+- secret.yaml
+- mysql-deployment.yaml
+- redis-deployment.yaml
+- web-rbac.yaml
+- web-deployment.yaml
+- ingress.yaml
+- hpa.yaml
+- monitoring.yaml
+
+# 命名空间配置
+namespace: water-cube
+
+# 通用标签
+commonLabels:
+  app: water-cube
+  managed-by: kustomize
+  version: "1.0.0"
+
+# 通用注解
+commonAnnotations:
+  description: "水立方舞蹈工作室管理系统"
+  maintainer: "DevOps Team"
+
+# 镜像替换（用于不同环境）
+images:
+- name: water-cube-web
+  newName: your-registry/water-cube-web
+  newTag: latest
+
+# 副本数配置（可被覆盖）
+replicas:
+- name: web
+  count: 3
+- name: mysql
+  count: 1
+- name: redis
+  count: 1
+
+# 环境变量替换（不同环境可覆盖）
+vars:
+- name: NAMESPACE
+  objref:
+    kind: Namespace
+    name: water-cube
+    apiVersion: v1
+  fieldref:
+    fieldpath: metadata.name

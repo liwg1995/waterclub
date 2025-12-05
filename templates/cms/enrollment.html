@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}课程报名 - 水立方舞蹈工作室{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="bg-white rounded-lg shadow-lg p-8">
+        <h1 class="text-3xl font-bold mb-2 text-gray-900">课程报名</h1>
+        <p class="text-gray-600 mb-8">请填写以下信息完成报名</p>
+        
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            <!-- 个人信息 -->
+            <div class="bg-gray-50 p-6 rounded-lg">
+                <h2 class="text-xl font-bold mb-4 text-gray-900">个人信息</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">姓名 <span class="text-red-500">*</span></label>
+                        <input type="text" name="name" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="请输入您的姓名">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">电话 <span class="text-red-500">*</span></label>
+                        <input type="tel" name="phone" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="请输入您的联系电话">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">邮箱</label>
+                        <input type="email" name="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="请输入您的邮箱">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 课程选择 -->
+            <div class="bg-gray-50 p-6 rounded-lg">
+                <h2 class="text-xl font-bold mb-4 text-gray-900">选择课程 <span class="text-red-500">*</span></h2>
+                
+                {% if courses %}
+                <div class="space-y-3">
+                    {% for course in courses %}
+                    <label class="flex items-start p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-blue-50 transition-colors">
+                        <input type="radio" name="course_id" value="{{ course.id }}" required class="mt-1 mr-4 h-4 w-4 text-blue-600">
+                        <div>
+                            <div class="font-semibold text-gray-900">{{ course.name }}</div>
+                            <div class="text-sm text-gray-600">
+                                <p>班型：{{ course.class_type.name }}</p>
+                                <p>讲师：{{ course.teacher.real_name }}</p>
+                                <p>开课时间：{{ course.start_date|date:"Y年m月d日" }} - {{ course.end_date|date:"Y年m月d日" }}</p>
+                                <p>已报名：{{ course.enrolled_count }}/{{ course.max_students }}</p>
+                            </div>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-8 text-gray-500">
+                    <p>暂无开放报名的课程</p>
+                    <a href="{% url 'cms:classes' %}" class="text-blue-600 hover:text-blue-800 mt-2 inline-block">查看班型介绍</a>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- 声明 -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <label class="flex items-start">
+                    <input type="checkbox" required class="mt-1 mr-3 h-4 w-4 text-blue-600">
+                    <span class="text-sm text-gray-700">
+                        我已阅读并同意<a href="#" class="text-blue-600 hover:text-blue-800">《报名协议》</a>和<a href="#" class="text-blue-600 hover:text-blue-800">《隐私政策》</a>
+                    </span>
+                </label>
+            </div>
+            
+            <!-- 提交按钮 -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button type="submit" class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-lg font-bold hover:shadow-lg transition-all">
+                    提交报名
+                </button>
+                <a href="{% url 'cms:classes' %}" class="border-2 border-blue-500 text-blue-600 px-8 py-3 rounded-lg font-bold hover:bg-blue-50 transition-colors text-center">
+                    返回
+                </a>
+            </div>
+        </form>
+        
+        <!-- 帮助信息 -->
+        <div class="mt-12 pt-8 border-t border-gray-200">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">常见问题</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h4 class="font-semibold text-gray-900 mb-2">📝 报名流程</h4>
+                    <p class="text-sm text-gray-600">填写信息 → 选择课程 → 提交报名 → 进行支付 → 报名完成</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-gray-900 mb-2">💳 支付方式</h4>
+                    <p class="text-sm text-gray-600">支持支付宝、微信支付等多种支付方式</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-gray-900 mb-2">❓ 有疑问？</h4>
+                    <p class="text-sm text-gray-600">拨打客服热线：400-123-4567</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-gray-900 mb-2">⏰ 什么时候开课？</h4>
+                    <p class="text-sm text-gray-600">报名成功后，我们会提前通知您开课时间</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

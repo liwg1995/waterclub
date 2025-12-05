@@ -1,0 +1,46 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: water-cube-prod
+  namespace: argocd
+  # 防止意外删除
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  
+  source:
+    repoURL: https://github.com/your-org/water-cube-studio.git
+    targetRevision: main
+    path: k8s/overlays/prod
+  
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: water-cube
+  
+  syncPolicy:
+    # 生产环境使用手动同步
+    syncOptions:
+    - CreateNamespace=true
+    # 仅允许从 main 分支同步
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  
+  # 监控配置
+  ignoreDifferences:
+  - group: apps
+    kind: Deployment
+    jsonPointers:
+    - /spec/replicas
+  
+  info:
+  - name: 'Documentation'
+    value: 'https://github.com/your-org/water-cube-studio/wiki'
+  - name: 'Source'
+    value: 'https://github.com/your-org/water-cube-studio'
+  - name: 'Support'
+    value: 'https://github.com/your-org/water-cube-studio/issues'

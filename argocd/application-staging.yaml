@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: water-cube-staging
+  namespace: argocd
+spec:
+  project: default
+  
+  source:
+    repoURL: https://github.com/your-org/water-cube-studio.git
+    targetRevision: staging
+    path: k8s/overlays/staging
+  
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: water-cube
+  
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+  
+  info:
+  - name: 'Documentation'
+    value: 'https://github.com/your-org/water-cube-studio/wiki'
+  - name: 'Source'
+    value: 'https://github.com/your-org/water-cube-studio'

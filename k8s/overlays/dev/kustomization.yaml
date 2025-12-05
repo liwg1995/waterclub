@@ -1,0 +1,62 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: water-cube
+
+bases:
+- ../../
+
+replicas:
+- name: web
+  count: 1
+- name: mysql
+  count: 1
+- name: redis
+  count: 1
+
+images:
+- name: water-cube-web
+  newName: water-cube-web
+  newTag: dev
+
+patches:
+- target:
+    kind: Deployment
+    name: web
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/imagePullPolicy
+      value: Never
+    - op: replace
+      path: /spec/replicas
+      value: 1
+
+- target:
+    kind: Deployment
+    name: web
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/requests/memory
+      value: "128Mi"
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/limits/memory
+      value: "256Mi"
+
+configMapGenerator:
+- name: water-cube-config
+  behavior: merge
+  literals:
+  - DEBUG=True
+  - ALLOWED_HOSTS=localhost,127.0.0.1,*.local
+
+secretGenerator:
+- name: water-cube-secret
+  behavior: merge
+  files:
+  - secret.env
+
+commonLabels:
+  environment: dev
+
+commonAnnotations:
+  description: "开发环境配置"

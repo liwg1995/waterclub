@@ -1,0 +1,181 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+  namespace: water-cube
+  labels:
+    app: web
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8000
+      targetPort: 8000
+      protocol: TCP
+      name: http
+  selector:
+    app: web
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: water-cube
+  labels:
+    app: web
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: web
+      initContainers:
+      # 等待数据库就绪
+      - name: wait-for-db
+        image: busybox:1.28
+        command: ['sh', '-c', 'until nc -z mysql 3306; do echo waiting for db; sleep 2; done']
+      # 执行数据库迁移
+      - name: migrate
+        image: water-cube-web:latest
+        imagePullPolicy: Always
+        command: ["python", "manage.py", "migrate"]
+        envFrom:
+        - configMapRef:
+            name: water-cube-config
+        - secretRef:
+            name: water-cube-secret
+        env:
+        - name: DB_HOST
+          value: mysql
+        - name: DB_PORT
+          value: "3306"
+        - name: DB_NAME
+          value: water_cube_db
+        - name: DB_USER
+          value: root
+        - name: REDIS_URL
+          value: redis://redis:6379/1
+      containers:
+      - name: web
+        image: water-cube-web:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+          name: http
+        envFrom:
+        - configMapRef:
+            name: water-cube-config
+        - secretRef:
+            name: water-cube-secret
+        env:
+        - name: DB_HOST
+          value: mysql
+        - name: DB_PORT
+          value: "3306"
+        - name: DB_NAME
+          value: water_cube_db
+        - name: DB_USER
+          value: root
+        - name: REDIS_URL
+          value: redis://redis:6379/1
+        - name: GUNICORN_WORKERS
+          value: "4"
+        - name: GUNICORN_TIMEOUT
+          value: "60"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /admin/
+            port: 8000
+            httpHeaders:
+            - name: Host
+              value: localhost
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /admin/
+            port: 8000
+            httpHeaders:
+            - name: Host
+              value: localhost
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        volumeMounts:
+        - name: static-volume
+          mountPath: /app/staticfiles
+        - name: media-volume
+          mountPath: /app/media
+        - name: logs-volume
+          mountPath: /app/logs
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
+      volumes:
+      - name: static-volume
+        emptyDir: {}
+      - name: media-volume
+        persistentVolumeClaim:
+          claimName: media-pvc
+      - name: logs-volume
+        emptyDir: {}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - web
+              topologyKey: kubernetes.io/hostname
+      tolerations:
+      - key: "dedicated"
+        operator: "Equal"
+        value: "web"
+        effect: "NoSchedule"
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media-pvc
+  namespace: water-cube
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: standard

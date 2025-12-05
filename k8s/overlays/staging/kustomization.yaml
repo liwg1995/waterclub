@@ -1,0 +1,49 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: water-cube
+
+bases:
+- ../../
+
+replicas:
+- name: web
+  count: 2
+- name: mysql
+  count: 1
+- name: redis
+  count: 1
+
+images:
+- name: water-cube-web
+  newName: your-registry/water-cube-web
+  newTag: staging
+
+patches:
+- target:
+    kind: Deployment
+    name: web
+  patch: |-
+    - op: replace
+      path: /spec/replicas
+      value: 2
+
+configMapGenerator:
+- name: water-cube-config
+  behavior: merge
+  literals:
+  - DEBUG=False
+  - ALLOWED_HOSTS=staging.water-cube.com,api-staging.water-cube.com
+  - LOG_LEVEL=DEBUG
+
+secretGenerator:
+- name: water-cube-secret
+  behavior: merge
+  files:
+  - secret.env
+
+commonLabels:
+  environment: staging
+
+commonAnnotations:
+  description: "测试环境配置"

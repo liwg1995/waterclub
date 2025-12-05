@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}新闻动态 - 水立方舞蹈工作室{% endblock %}
+
+{% block content %}
+<div class="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h1 class="text-4xl md:text-5xl font-bold mb-4">新闻动态</h1>
+        <p class="text-lg opacity-90">了解最新资讯和活动</p>
+    </div>
+</div>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {% for article in articles %}
+        <div class="bg-white rounded-lg overflow-hidden shadow-lg hover-lift">
+            <img src="{{ article.cover.url }}" alt="{{ article.title }}" class="w-full h-48 object-cover">
+            <div class="p-6">
+                <span class="text-xs text-blue-600 font-semibold">{{ article.get_category_display }}</span>
+                <h3 class="text-xl font-bold mt-2 mb-2">{{ article.title }}</h3>
+                <p class="text-gray-600 text-sm mb-4">{{ article.summary }}</p>
+                <div class="flex items-center justify-between text-sm text-gray-500">
+                    <span>{{ article.published_at|date:"Y-m-d" }}</span>
+                    <a href="{% url 'cms:article_detail' article.pk %}" class="text-blue-600 hover:text-blue-800 font-semibold">阅读更多 →</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-3 text-center text-gray-500 py-12">暂无文章</div>
+        {% endfor %}
+    </div>
+    
+    <!-- 分页 -->
+    {% if is_paginated %}
+    <div class="mt-12 flex justify-center">
+        <nav class="flex items-center space-x-2">
+            {% if page_obj.has_previous %}
+            <a href="?page=1" class="px-4 py-2 border rounded hover:bg-gray-50">首页</a>
+            <a href="?page={{ page_obj.previous_page_number }}" class="px-4 py-2 border rounded hover:bg-gray-50">上一页</a>
+            {% endif %}
+            
+            <span class="px-4 py-2">第 {{ page_obj.number }} / {{ page_obj.paginator.num_pages }} 页</span>
+            
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="px-4 py-2 border rounded hover:bg-gray-50">下一页</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}" class="px-4 py-2 border rounded hover:bg-gray-50">末页</a>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
